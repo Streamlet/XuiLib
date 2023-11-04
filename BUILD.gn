@@ -1,0 +1,6 @@
+group("all") {
+  deps = [
+    "samples",
+    "src:xuilib",
+  ]
+}

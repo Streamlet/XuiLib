@@ -1,0 +1,3 @@
+source_set("xuilib") {
+  sources = [ "../include/xui/xuilib.h" ]
+}
