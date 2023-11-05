@@ -1,3 +1,30 @@
-source_set("xuilib") {
-  sources = [ "../include/xui/xuilib.h" ]
+config("xuilib_public_config") {
+  include_dirs = [ "../include" ]
+}
+
+static_library("xuilib") {
+  sources = [
+    "../include/xui/window/root_window.h",
+    "../include/xui/xuilib.h",
+    "window/root_window.cc",
+  ]
+
+  if (is_win) {
+    sources += [
+      "window/native_window_win.cc",
+      "window/native_window_win.h",
+      "window/thunk_win.h",
+      "window/tls_win.cc",
+      "window/tls_win.h",
+    ]
+  }
+
+  if (is_mac) {
+    sources += [
+      "native_window_mac.h",
+      "native_window_mac.mm",
+    ]
+  }
+
+  public_configs = [ ":xuilib_public_config" ]
 }

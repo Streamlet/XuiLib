@@ -1,0 +1,29 @@
+source_set("helloworld_sources") {
+  sources = [
+    "main_window.cc",
+    "main_window.h",
+  ]
+
+  deps = [ "../../src:xuilib" ]
+}
+
+if (is_win) {
+  win32_app("helloworld") {
+    sources = [ "main.cc" ]
+    deps = [
+      ":helloworld_sources",
+      "../../src:xuilib",
+    ]
+  }
+} else if (is_mac) {
+  app_bundle("helloworld") {
+    sources = [ "main.mm" ]
+    deps = [
+      ":helloworld_sources",
+      "../../src:xuilib",
+    ]
+    frameworks = [ "Cocoa.framework" ]
+    info_plist = "Info.plist"
+    resources = []
+  }
+}
