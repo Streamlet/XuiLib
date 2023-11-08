@@ -6,13 +6,13 @@ static_library("xuilib") {
   sources = [
     "../include/xui/window/root_window.h",
     "../include/xui/xuilib.h",
-    "window/root_window.cc",
   ]
 
   if (is_win) {
     sources += [
       "window/native_window_win.cc",
       "window/native_window_win.h",
+      "window/root_window_win.cc",
       "window/thunk_win.h",
       "window/tls_win.cc",
       "window/tls_win.h",
@@ -21,8 +21,11 @@ static_library("xuilib") {
 
   if (is_mac) {
     sources += [
-      "native_window_mac.h",
-      "native_window_mac.mm",
+      "window/native_window_mac.h",
+      "window/native_window_mac.mm",
+      "window/ns_native_window_mac.h",
+      "window/ns_native_window_mac.m",
+      "window/root_window_mac.cc",
     ]
   }
 

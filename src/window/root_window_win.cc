@@ -1,15 +1,8 @@
 #include <xui/window/root_window.h>
 
-#if defined(_WIN32)
 #include "native_window_win.h"
-#elif defined(__APPLE__)
-#include "native_window_mac.h"
-#endif
 
-#if defined(_WIN32)
 const TCHAR *ROOT_WINDOW_CLASS_NAME = _T("XUI_ROOT_WINDOW");
-
-#endif
 
 namespace xui
 {
