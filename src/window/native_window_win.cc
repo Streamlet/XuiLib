@@ -1,174 +1,211 @@
 #include "native_window_win.h"
-#include <cassert>
 
 namespace xui
 {
 
-Tls NativeWindow::tls_;
-HFONT NativeWindow::font_;
-
-NativeWindow::NativeWindow() : hwnd_(nullptr), original_proc_(::DefWindowProc)
+NativeWindow::NativeWindow(Window *window) : window_(window)
 {
-#ifdef _DEBUG
-    thread_id_ = 0;
-#endif
+    using namespace std::placeholders;
+    RegisterMessaheHandler(WM_CREATE, std::bind(&NativeWindow::OnCreate, this, _1, _2, _3, _4));
+    RegisterMessaheHandler(WM_CLOSE, std::bind(&NativeWindow::OnClose, this, _1, _2, _3, _4));
+    RegisterMessaheHandler(WM_DESTROY, std::bind(&NativeWindow::OnDestroy, this, _1, _2, _3, _4));
+    RegisterMessaheHandler(WM_SIZE, std::bind(&NativeWindow::OnSize, this, _1, _2, _3, _4));
+    RegisterMessaheHandler(WM_ERASEBKGND, std::bind(&NativeWindow::OnEraseBkgnd, this, _1, _2, _3, _4));
+    RegisterMessaheHandler(WM_PAINT, std::bind(&NativeWindow::OnPaint, this, _1, _2, _3, _4));
+    RegisterMessaheHandler(WM_SYSKEYDOWN, std::bind(&NativeWindow::OnSysKeyDown, this, _1, _2, _3, _4));
+    RegisterMessaheHandler(WM_SYSKEYUP, std::bind(&NativeWindow::OnSysKeyUp, this, _1, _2, _3, _4));
+    RegisterMessaheHandler(WM_KEYDOWN, std::bind(&NativeWindow::OnKeyDown, this, _1, _2, _3, _4));
+    RegisterMessaheHandler(WM_KEYUP, std::bind(&NativeWindow::OnKeyUp, this, _1, _2, _3, _4));
+    RegisterMessaheHandler(WM_CHAR, std::bind(&NativeWindow::OnChar, this, _1, _2, _3, _4));
+    RegisterMessaheHandler(WM_UNICHAR, std::bind(&NativeWindow::OnUniChar, this, _1, _2, _3, _4));
+    RegisterMessaheHandler(WM_LBUTTONDOWN, std::bind(&NativeWindow::OnLButtonDown, this, _1, _2, _3, _4));
+    RegisterMessaheHandler(WM_LBUTTONUP, std::bind(&NativeWindow::OnLButtonUp, this, _1, _2, _3, _4));
+    RegisterMessaheHandler(WM_LBUTTONDBLCLK, std::bind(&NativeWindow::OnLButtonDblClk, this, _1, _2, _3, _4));
+    RegisterMessaheHandler(WM_RBUTTONDOWN, std::bind(&NativeWindow::OnRButtonDown, this, _1, _2, _3, _4));
+    RegisterMessaheHandler(WM_RBUTTONUP, std::bind(&NativeWindow::OnRButtonUp, this, _1, _2, _3, _4));
+    RegisterMessaheHandler(WM_RBUTTONDBLCLK, std::bind(&NativeWindow::OnRButtonDblClk, this, _1, _2, _3, _4));
+    RegisterMessaheHandler(WM_MBUTTONDOWN, std::bind(&NativeWindow::OnMButtonDown, this, _1, _2, _3, _4));
+    RegisterMessaheHandler(WM_MBUTTONUP, std::bind(&NativeWindow::OnMButtonUp, this, _1, _2, _3, _4));
+    RegisterMessaheHandler(WM_MBUTTONDBLCLK, std::bind(&NativeWindow::OnMButtonDblClk, this, _1, _2, _3, _4));
+    RegisterMessaheHandler(WM_XBUTTONDOWN, std::bind(&NativeWindow::OnXButtonDown, this, _1, _2, _3, _4));
+    RegisterMessaheHandler(WM_XBUTTONUP, std::bind(&NativeWindow::OnXButtonUp, this, _1, _2, _3, _4));
+    RegisterMessaheHandler(WM_XBUTTONDBLCLK, std::bind(&NativeWindow::OnXButtonDblClk, this, _1, _2, _3, _4));
+    RegisterMessaheHandler(WM_MOUSEWHEEL, std::bind(&NativeWindow::OnMouseWheel, this, _1, _2, _3, _4));
+    RegisterMessaheHandler(WM_MOUSEHWHEEL, std::bind(&NativeWindow::OnMouseHWheel, this, _1, _2, _3, _4));
+    RegisterMessaheHandler(WM_SETFOCUS, std::bind(&NativeWindow::OnSetFocus, this, _1, _2, _3, _4));
+    RegisterMessaheHandler(WM_KILLFOCUS, std::bind(&NativeWindow::OnKillFocus, this, _1, _2, _3, _4));
 }
 
 NativeWindow::~NativeWindow()
 {
-    Destroy();
-    Detach();
 }
 
-bool NativeWindow::Create(HWND hParent,
-                          const Rect &rect,
-                          DWORD style,
-                          DWORD exStyle,
-                          LPCTSTR className,
-                          LPCTSTR windowName,
-                          HMENU menu,
-                          HINSTANCE instance)
+LRESULT NativeWindow::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
 {
-    assert(hwnd_ == nullptr);
-#ifdef _DEBUG
-    thread_id_ = ::GetCurrentThreadId();
-#endif
-
-    WNDCLASSEX wcex = {sizeof(WNDCLASSEX)};
-    bool stdControl = !!GetClassInfoEx(nullptr, className, &wcex);
-    if (!stdControl)
-    {
-        ZeroMemory(&wcex, sizeof(WNDCLASSEX));
-        wcex.cbSize = sizeof(WNDCLASSEX);
-        wcex.style = CS_VREDRAW | CS_HREDRAW | CS_DBLCLKS;
-        wcex.lpfnWndProc = StartWndProc;
-        wcex.hInstance = instance;
-        wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
-        wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-        wcex.lpszClassName = className;
-
-        ATOM atom = RegisterClassEx(&wcex);
-        if (atom == 0)
-        {
-            return false;
-        }
-
-        tls_.Set((void *)this);
-    }
-
-    HWND hWnd = ::CreateWindowEx(exStyle, className, windowName, style, rect.l, rect.t, rect.W(), rect.H(), hParent,
-                                 menu, instance, nullptr);
-    if (hWnd == nullptr)
-    {
-        DWORD dw = ::GetLastError();
-        return false;
-    }
-
-    if (stdControl)
-    {
-        Attach(hWnd);
-    }
-
-    if (font_ == nullptr)
-    {
-        NONCLIENTMETRICS m_tagNONCLIENTMETRICSW = {sizeof(m_tagNONCLIENTMETRICSW)};
-        SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &m_tagNONCLIENTMETRICSW, 0);
-
-        font_ = CreateFontIndirect(&m_tagNONCLIENTMETRICSW.lfMessageFont);
-    }
-    ::SendMessage(hwnd_, WM_SETFONT, (WPARAM)font_, MAKELPARAM(FALSE, 0));
-
-    return true;
-}
-
-bool NativeWindow::Destroy()
-{
-    assert(hwnd_ != nullptr);
-    return !!::DestroyWindow(hwnd_);
-}
-
-NativeWindow::operator HWND() const
-{
-    return hwnd_;
-}
-
-bool NativeWindow::Attach(HWND hWnd)
-{
-    assert(hwnd_ == nullptr);
-    hwnd_ = hWnd;
-
-    tls_.Set(this);
-    original_proc_ = (WNDPROC)::SetWindowLongPtr(hwnd_, GWLP_WNDPROC, (LONG_PTR)StartWndProc);
-
-    // Force the StartWndProc to be called:
-    ::SendMessage(hwnd_, WM_NULL, 0, 0);
-
-    return true;
-}
-
-HWND NativeWindow::Detach()
-{
-    assert(hwnd_ != nullptr);
-    HWND hWnd = hwnd_;
-    ::SetWindowLongPtr(hwnd_, GWLP_WNDPROC, (LONG_PTR)original_proc_);
-    hwnd_ = nullptr;
-    return hWnd;
-}
-
-void NativeWindow::RegisterMessaheHandler(UINT uMsg, MsgHandler handler)
-{
-#ifdef _DEBUG
-    assert(thread_id_ == ::GetCurrentThreadId());
-#endif
-    msg_handlers_.emplace(uMsg, handler);
-}
-
-LRESULT NativeWindow::ProcessMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
-{
-    LRESULT lResult = 0;
-    for (auto it = msg_handlers_.lower_bound(uMsg), end = msg_handlers_.upper_bound(uMsg); it != end; ++it)
-    {
-        lResult = it->second(uMsg, wParam, lParam, bHandled);
-        if (bHandled)
-        {
-            return lResult;
-        }
-    }
     bHandled = false;
-    return lResult;
+    return 0;
 }
 
-LRESULT CALLBACK NativeWindow::StartWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT NativeWindow::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
 {
-    NativeWindow *pThis = (NativeWindow *)tls_.Get();
-
-    pThis->thunk_.SetObject(pThis);
-    pThis->thunk_.SetRealProc(&NativeWindow::StaticWndProc);
-    pThis->hwnd_ = hwnd;
-    WNDPROC pWndProc = pThis->thunk_.GetThunkProc();
-
-    ::SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR)pWndProc);
-
-    return pWndProc(hwnd, uMsg, wParam, lParam);
+    bHandled = false;
+    return 0;
 }
 
-LRESULT CALLBACK NativeWindow::StaticWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT NativeWindow::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
 {
-    bool bHandled = true;
-    NativeWindow *pThis = (NativeWindow *)hWnd;
-    LRESULT lResult = pThis->ProcessMessage(uMsg, wParam, lParam, bHandled);
+    window_->ProcessMessage(XUI_WM_DESTROY, nullptr, bHandled);
+    return 0;
+}
 
-    if (!bHandled)
-    {
-        lResult = pThis->original_proc_(pThis->hwnd_, uMsg, wParam, lParam);
-    }
+LRESULT NativeWindow::OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
+{
+    bHandled = false;
+    return 0;
+}
 
-    if (uMsg == WM_NCDESTROY)
-    {
-        pThis->hwnd_ = nullptr;
-    }
+LRESULT NativeWindow::OnEraseBkgnd(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
+{
+    bHandled = false;
+    return 0;
+}
 
-    return lResult;
+LRESULT NativeWindow::OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT NativeWindow::OnSysKeyDown(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT NativeWindow::OnSysKeyUp(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT NativeWindow::OnKeyDown(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT NativeWindow::OnKeyUp(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT NativeWindow::OnChar(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT NativeWindow::OnUniChar(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT NativeWindow::OnLButtonDown(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT NativeWindow::OnLButtonUp(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT NativeWindow::OnLButtonDblClk(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT NativeWindow::OnRButtonDown(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT NativeWindow::OnRButtonUp(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT NativeWindow::OnRButtonDblClk(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT NativeWindow::OnMButtonDown(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT NativeWindow::OnMButtonUp(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT NativeWindow::OnMButtonDblClk(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT NativeWindow::OnXButtonDown(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT NativeWindow::OnXButtonUp(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT NativeWindow::OnXButtonDblClk(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT NativeWindow::OnMouseWheel(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT NativeWindow::OnMouseHWheel(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT NativeWindow::OnSetFocus(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT NativeWindow::OnKillFocus(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
+{
+    bHandled = false;
+    return 0;
 }
 
 } // namespace xui

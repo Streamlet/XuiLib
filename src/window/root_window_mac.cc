@@ -5,7 +5,7 @@
 namespace xui
 {
 
-RootWindow::RootWindow() : native_window_(std::make_unique<NativeWindow>())
+RootWindow::RootWindow() : native_window_(std::make_unique<NativeWindow>(this))
 {
 }
 

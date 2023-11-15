@@ -4,12 +4,21 @@ config("xuilib_public_config") {
 
 static_library("xuilib") {
   sources = [
+    "../include/xui/utility/app_util.h",
+    "../include/xui/utility/string.h",
+    "../include/xui/window/child_window.h",
+    "../include/xui/window/message.h",
     "../include/xui/window/root_window.h",
+    "../include/xui/window/window.h",
     "../include/xui/xuilib.h",
+    "window/window.cc",
   ]
 
   if (is_win) {
     sources += [
+      "utility/app_util_win.cc",
+      "window/native_window_base_win.cc",
+      "window/native_window_base_win.h",
       "window/native_window_win.cc",
       "window/native_window_win.h",
       "window/root_window_win.cc",

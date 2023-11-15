@@ -1,56 +1,49 @@
-#include "thunk_win.h"
-#include "tls_win.h"
-#include <functional>
-#include <map>
-#include <tchar.h>
-#include <Windows.h>
-#include <xui/gragh/rect.h>
+#pragma once
+
+#include "native_window_base_win.h"
+#include <xui/window/window.h>
 
 namespace xui
 {
 
-class NativeWindow
+class NativeWindow : public NativeWindowBase
 {
   public:
-    NativeWindow();
+    NativeWindow(Window *window);
     ~NativeWindow();
 
-    bool Create(HWND hParent,
-                const Rect &rect,
-                DWORD style,
-                DWORD exStyle,
-                LPCTSTR className,
-                LPCTSTR windowName = nullptr,
-                HMENU menu = nullptr,
-                HINSTANCE instalce = nullptr);
-    bool Destroy();
-    operator HWND() const;
+  private:
+    LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled);
+    LRESULT OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled);
+    LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled);
+    LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled);
+    LRESULT OnEraseBkgnd(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled);
+    LRESULT OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled);
+    LRESULT OnSysKeyDown(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled);
+    LRESULT OnSysKeyUp(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled);
+    LRESULT OnKeyDown(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled);
+    LRESULT OnKeyUp(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled);
+    LRESULT OnChar(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled);
+    LRESULT OnUniChar(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled);
+    LRESULT OnLButtonDown(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled);
+    LRESULT OnLButtonUp(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled);
+    LRESULT OnLButtonDblClk(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled);
+    LRESULT OnRButtonDown(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled);
+    LRESULT OnRButtonUp(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled);
+    LRESULT OnRButtonDblClk(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled);
+    LRESULT OnMButtonDown(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled);
+    LRESULT OnMButtonUp(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled);
+    LRESULT OnMButtonDblClk(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled);
+    LRESULT OnXButtonDown(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled);
+    LRESULT OnXButtonUp(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled);
+    LRESULT OnXButtonDblClk(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled);
+    LRESULT OnMouseWheel(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled);
+    LRESULT OnMouseHWheel(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled);
+    LRESULT OnSetFocus(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled);
+    LRESULT OnKillFocus(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled);
 
   private:
-    bool Attach(HWND hWnd);
-    HWND Detach();
-
-  protected:
-    typedef std::function<LRESULT(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)> MsgHandler;
-    void RegisterMessaheHandler(UINT uMsg, MsgHandler handler);
-
-  private:
-    LRESULT ProcessMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled);
-
-    static LRESULT CALLBACK StartWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-    static LRESULT CALLBACK StaticWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-
-  private:
-    HWND hwnd_;
-    WNDPROC original_proc_;
-    Thunk<WNDPROC> thunk_;
-#ifdef _DEBUG
-    DWORD thread_id_;
-#endif
-    std::multimap<UINT, MsgHandler> msg_handlers_;
-
-    static Tls tls_;
-    static HFONT font_;
+    Window *window_;
 };
 
 } // namespace xui

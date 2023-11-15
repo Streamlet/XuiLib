@@ -7,7 +7,7 @@ const TCHAR *ROOT_WINDOW_CLASS_NAME = _T("XUI_ROOT_WINDOW");
 namespace xui
 {
 
-RootWindow::RootWindow() : native_window_(std::make_unique<NativeWindow>())
+RootWindow::RootWindow() : native_window_(std::make_unique<NativeWindow>(this))
 {
 }
 

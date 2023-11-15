@@ -1,5 +1,6 @@
 #include "../gragh/rect.h"
 #include "../utility/string.h"
+#include "window.h"
 #include <memory>
 
 namespace xui
@@ -7,7 +8,7 @@ namespace xui
 
 class NativeWindow;
 
-class RootWindow
+class RootWindow : public Window
 {
   public:
     RootWindow();
