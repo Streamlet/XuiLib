@@ -30,10 +30,11 @@ static_library("xuilib") {
 
   if (is_mac) {
     sources += [
+      "utility/app_util_mac.mm",
       "window/native_window_mac.h",
       "window/native_window_mac.mm",
       "window/ns_native_window_mac.h",
-      "window/ns_native_window_mac.m",
+      "window/ns_native_window_mac.mm",
       "window/root_window_mac.cc",
     ]
   }
