@@ -1,39 +1,40 @@
 #include "native_window_win.h"
 
+#define REGISTER_MSG_HANDLER(msg, handler) RegisterMessageHandler(msg, std::bind(&NativeWindow::handler, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4))
+
 namespace xui
 {
 
 NativeWindow::NativeWindow(Window *window) : window_(window)
 {
-    using namespace std::placeholders;
-    RegisterMessaheHandler(WM_CREATE, std::bind(&NativeWindow::OnCreate, this, _1, _2, _3, _4));
-    RegisterMessaheHandler(WM_CLOSE, std::bind(&NativeWindow::OnClose, this, _1, _2, _3, _4));
-    RegisterMessaheHandler(WM_DESTROY, std::bind(&NativeWindow::OnDestroy, this, _1, _2, _3, _4));
-    RegisterMessaheHandler(WM_SIZE, std::bind(&NativeWindow::OnSize, this, _1, _2, _3, _4));
-    RegisterMessaheHandler(WM_ERASEBKGND, std::bind(&NativeWindow::OnEraseBkgnd, this, _1, _2, _3, _4));
-    RegisterMessaheHandler(WM_PAINT, std::bind(&NativeWindow::OnPaint, this, _1, _2, _3, _4));
-    RegisterMessaheHandler(WM_SYSKEYDOWN, std::bind(&NativeWindow::OnSysKeyDown, this, _1, _2, _3, _4));
-    RegisterMessaheHandler(WM_SYSKEYUP, std::bind(&NativeWindow::OnSysKeyUp, this, _1, _2, _3, _4));
-    RegisterMessaheHandler(WM_KEYDOWN, std::bind(&NativeWindow::OnKeyDown, this, _1, _2, _3, _4));
-    RegisterMessaheHandler(WM_KEYUP, std::bind(&NativeWindow::OnKeyUp, this, _1, _2, _3, _4));
-    RegisterMessaheHandler(WM_CHAR, std::bind(&NativeWindow::OnChar, this, _1, _2, _3, _4));
-    RegisterMessaheHandler(WM_UNICHAR, std::bind(&NativeWindow::OnUniChar, this, _1, _2, _3, _4));
-    RegisterMessaheHandler(WM_LBUTTONDOWN, std::bind(&NativeWindow::OnLButtonDown, this, _1, _2, _3, _4));
-    RegisterMessaheHandler(WM_LBUTTONUP, std::bind(&NativeWindow::OnLButtonUp, this, _1, _2, _3, _4));
-    RegisterMessaheHandler(WM_LBUTTONDBLCLK, std::bind(&NativeWindow::OnLButtonDblClk, this, _1, _2, _3, _4));
-    RegisterMessaheHandler(WM_RBUTTONDOWN, std::bind(&NativeWindow::OnRButtonDown, this, _1, _2, _3, _4));
-    RegisterMessaheHandler(WM_RBUTTONUP, std::bind(&NativeWindow::OnRButtonUp, this, _1, _2, _3, _4));
-    RegisterMessaheHandler(WM_RBUTTONDBLCLK, std::bind(&NativeWindow::OnRButtonDblClk, this, _1, _2, _3, _4));
-    RegisterMessaheHandler(WM_MBUTTONDOWN, std::bind(&NativeWindow::OnMButtonDown, this, _1, _2, _3, _4));
-    RegisterMessaheHandler(WM_MBUTTONUP, std::bind(&NativeWindow::OnMButtonUp, this, _1, _2, _3, _4));
-    RegisterMessaheHandler(WM_MBUTTONDBLCLK, std::bind(&NativeWindow::OnMButtonDblClk, this, _1, _2, _3, _4));
-    RegisterMessaheHandler(WM_XBUTTONDOWN, std::bind(&NativeWindow::OnXButtonDown, this, _1, _2, _3, _4));
-    RegisterMessaheHandler(WM_XBUTTONUP, std::bind(&NativeWindow::OnXButtonUp, this, _1, _2, _3, _4));
-    RegisterMessaheHandler(WM_XBUTTONDBLCLK, std::bind(&NativeWindow::OnXButtonDblClk, this, _1, _2, _3, _4));
-    RegisterMessaheHandler(WM_MOUSEWHEEL, std::bind(&NativeWindow::OnMouseWheel, this, _1, _2, _3, _4));
-    RegisterMessaheHandler(WM_MOUSEHWHEEL, std::bind(&NativeWindow::OnMouseHWheel, this, _1, _2, _3, _4));
-    RegisterMessaheHandler(WM_SETFOCUS, std::bind(&NativeWindow::OnSetFocus, this, _1, _2, _3, _4));
-    RegisterMessaheHandler(WM_KILLFOCUS, std::bind(&NativeWindow::OnKillFocus, this, _1, _2, _3, _4));
+    REGISTER_MSG_HANDLER(WM_CREATE, OnCreate);
+    REGISTER_MSG_HANDLER(WM_CLOSE, OnClose);
+    REGISTER_MSG_HANDLER(WM_DESTROY, OnDestroy);
+    REGISTER_MSG_HANDLER(WM_SIZE, OnSize);
+    REGISTER_MSG_HANDLER(WM_ERASEBKGND, OnEraseBkgnd);
+    REGISTER_MSG_HANDLER(WM_PAINT, OnPaint);
+    REGISTER_MSG_HANDLER(WM_SYSKEYDOWN, OnSysKeyDown);
+    REGISTER_MSG_HANDLER(WM_SYSKEYUP, OnSysKeyUp);
+    REGISTER_MSG_HANDLER(WM_KEYDOWN, OnKeyDown);
+    REGISTER_MSG_HANDLER(WM_KEYUP, OnKeyUp);
+    REGISTER_MSG_HANDLER(WM_CHAR, OnChar);
+    REGISTER_MSG_HANDLER(WM_UNICHAR, OnUniChar);
+    REGISTER_MSG_HANDLER(WM_LBUTTONDOWN, OnLButtonDown);
+    REGISTER_MSG_HANDLER(WM_LBUTTONUP, OnLButtonUp);
+    REGISTER_MSG_HANDLER(WM_LBUTTONDBLCLK, OnLButtonDblClk);
+    REGISTER_MSG_HANDLER(WM_RBUTTONDOWN, OnRButtonDown);
+    REGISTER_MSG_HANDLER(WM_RBUTTONUP, OnRButtonUp);
+    REGISTER_MSG_HANDLER(WM_RBUTTONDBLCLK, OnRButtonDblClk);
+    REGISTER_MSG_HANDLER(WM_MBUTTONDOWN, OnMButtonDown);
+    REGISTER_MSG_HANDLER(WM_MBUTTONUP, OnMButtonUp);
+    REGISTER_MSG_HANDLER(WM_MBUTTONDBLCLK, OnMButtonDblClk);
+    REGISTER_MSG_HANDLER(WM_XBUTTONDOWN, OnXButtonDown);
+    REGISTER_MSG_HANDLER(WM_XBUTTONUP, OnXButtonUp);
+    REGISTER_MSG_HANDLER(WM_XBUTTONDBLCLK, OnXButtonDblClk);
+    REGISTER_MSG_HANDLER(WM_MOUSEWHEEL, OnMouseWheel);
+    REGISTER_MSG_HANDLER(WM_MOUSEHWHEEL, OnMouseHWheel);
+    REGISTER_MSG_HANDLER(WM_SETFOCUS, OnSetFocus);
+    REGISTER_MSG_HANDLER(WM_KILLFOCUS, OnKillFocus);
 }
 
 NativeWindow::~NativeWindow()

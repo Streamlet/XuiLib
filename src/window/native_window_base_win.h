@@ -34,7 +34,7 @@ class NativeWindowBase
 
   protected:
     typedef std::function<LRESULT(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)> MsgHandler;
-    void RegisterMessaheHandler(UINT uMsg, MsgHandler handler);
+    void RegisterMessageHandler(UINT uMsg, MsgHandler handler);
 
   private:
     LRESULT ProcessMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled);

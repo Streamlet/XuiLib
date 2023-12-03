@@ -114,7 +114,7 @@ HWND NativeWindowBase::Detach()
     return hWnd;
 }
 
-void NativeWindowBase::RegisterMessaheHandler(UINT uMsg, MsgHandler handler)
+void NativeWindowBase::RegisterMessageHandler(UINT uMsg, MsgHandler handler)
 {
 #ifdef _DEBUG
     assert(thread_id_ == 0 || thread_id_ == ::GetCurrentThreadId());
