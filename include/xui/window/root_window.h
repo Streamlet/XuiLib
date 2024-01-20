@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../gragh/rect.h"
 #include "../utility/string.h"
 #include "window.h"

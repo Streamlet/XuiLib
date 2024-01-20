@@ -1,16 +1,21 @@
 #include "native_window_win.h"
+#include "../utility/graph_util_win.h"
+#include <winuser.h>
 
-#define REGISTER_MSG_HANDLER(msg, handler) RegisterMessageHandler(msg, std::bind(&NativeWindow::handler, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4))
+#define REGISTER_MSG_HANDLER(msg, handler)                                                                             \
+    RegisterMessageHandler(msg, std::bind(&NativeWindow::handler, this, std::placeholders::_1, std::placeholders::_2,  \
+                                          std::placeholders::_3, std::placeholders::_4))
 
 namespace xui
 {
 
-NativeWindow::NativeWindow(Window *window) : window_(window)
+NativeWindow::NativeWindow(RootWindow *window) : window_(window), gdi_renderer_(std::make_unique<GdiRenderer>())
 {
     REGISTER_MSG_HANDLER(WM_CREATE, OnCreate);
     REGISTER_MSG_HANDLER(WM_CLOSE, OnClose);
     REGISTER_MSG_HANDLER(WM_DESTROY, OnDestroy);
     REGISTER_MSG_HANDLER(WM_SIZE, OnSize);
+    REGISTER_MSG_HANDLER(WM_NCPAINT, OnNcPaint);
     REGISTER_MSG_HANDLER(WM_ERASEBKGND, OnEraseBkgnd);
     REGISTER_MSG_HANDLER(WM_PAINT, OnPaint);
     REGISTER_MSG_HANDLER(WM_SYSKEYDOWN, OnSysKeyDown);
@@ -44,6 +49,7 @@ NativeWindow::~NativeWindow()
 LRESULT NativeWindow::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
 {
     bHandled = false;
+    Redraw();
     return 0;
 }
 
@@ -65,16 +71,84 @@ LRESULT NativeWindow::OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHan
     return 0;
 }
 
-LRESULT NativeWindow::OnEraseBkgnd(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
+LRESULT NativeWindow::OnNcPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
 {
     bHandled = false;
     return 0;
 }
 
+LRESULT NativeWindow::OnEraseBkgnd(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
+{
+    return TRUE;
+}
+
 LRESULT NativeWindow::OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
 {
-    bHandled = false;
+    PAINTSTRUCT ps = {0};
+    ::BeginPaint(hwnd_, &ps);
+    RenderWindow(window_, ps.hdc,
+                 Rect(Point(ps.rcPaint.left, ps.rcPaint.top),
+                      Size(ps.rcPaint.right - ps.rcPaint.left, ps.rcPaint.bottom - ps.rcPaint.top)));
+    ::EndPaint(hwnd_, &ps);
     return 0;
+}
+
+void NativeWindow::Redraw()
+{
+    if ((GetWindowLong(hwnd_, GWL_EXSTYLE) & WS_EX_LAYERED) != 0)
+    {
+        HDC hDC = GetDC(hwnd_);
+        HDC hTargetDC = CreateCompatibleDC(hDC);
+
+        HBITMAP hBitmap = graph_util::CreateBitmap(window_->rect_.W(), window_->rect_.H(), nullptr);
+        ::SelectObject(hTargetDC, hBitmap);
+        RenderWindow(window_, hTargetDC, Rect(Point(0, 0), window_->rect_.Size()));
+        BLENDFUNCTION bf = {AC_SRC_OVER, 0, 255, AC_SRC_ALPHA};
+        POINT pt = POINT{0, 0};
+        SIZE sz{window_->rect_.W(), window_->rect_.H()};
+        HDC hScreenDC = GetDC(NULL);
+        ::UpdateLayeredWindow(hwnd_, hScreenDC, &pt, &sz, hTargetDC, &pt, 0, &bf, ULW_ALPHA);
+        ::ReleaseDC(nullptr, hScreenDC);
+        ::DeleteObject(hBitmap);
+        ::DeleteDC(hTargetDC);
+        ::ReleaseDC(hwnd_, hTargetDC);
+    }
+    else
+    {
+        InvalidateRect(hwnd_, nullptr, true);
+    }
+}
+
+void NativeWindow::RenderWindow(Window *window, HDC hDC, Rect rect)
+{
+    HDC hTargetDC = hDC;
+    HBITMAP hBitmap = nullptr;
+    if (window_->alpha_ != 255)
+    {
+        hTargetDC = ::CreateCompatibleDC(hDC);
+        hBitmap = graph_util::CreateBitmap(rect.W(), rect.H(), nullptr);
+        ::SelectObject(hTargetDC, hBitmap);
+    }
+    gdi_renderer_->AttachDC(hTargetDC);
+    ::SetViewportOrgEx(hTargetDC, rect.l, rect.t, nullptr);
+
+    bool bHandled = true;
+    window_->ProcessMessage(XUI_WM_PAINT, (Renderer *)gdi_renderer_.get(), bHandled);
+    for (const auto &child : window_->children_)
+    {
+        RenderWindow(child, hTargetDC, child->rect_);
+    }
+
+    ::SetViewportOrgEx(hTargetDC, 0, 0, nullptr);
+    gdi_renderer_->DetachDC();
+
+    if (hTargetDC != hDC)
+    {
+        BLENDFUNCTION bf = {AC_SRC_OVER, 0, window_->alpha_, AC_SRC_ALPHA};
+        ::AlphaBlend(hDC, rect.l, rect.t, rect.W(), rect.H(), hTargetDC, 0, 0, rect.W(), rect.H(), bf);
+        ::DeleteObject(hBitmap);
+        ::DeleteDC(hTargetDC);
+    }
 }
 
 LRESULT NativeWindow::OnSysKeyDown(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)

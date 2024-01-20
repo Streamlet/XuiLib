@@ -1,7 +1,7 @@
 #pragma once
 
 #include <xui/gragh/rect.h>
-#include <xui/window/window.h>
+#include <xui/window/root_window.h>
 
 namespace xui
 {
@@ -9,7 +9,7 @@ namespace xui
 class NativeWindow
 {
   public:
-    NativeWindow(Window *window);
+    NativeWindow(RootWindow *window);
     ~NativeWindow();
 
     bool Create(const Rect &rect, const char *title);
@@ -19,7 +19,7 @@ class NativeWindow
     void *ProcessMessage(WindowMessage msg, void *param, bool &handled);
 
   private:
-    Window *window_;
+    RootWindow *window_;
     void *ns_window_;
 };
 

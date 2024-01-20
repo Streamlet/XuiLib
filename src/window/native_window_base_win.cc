@@ -59,7 +59,6 @@ bool NativeWindowBase::Create(HWND hParent,
                                  menu, instance, nullptr);
     if (hWnd == nullptr)
     {
-        DWORD dw = ::GetLastError();
         return false;
     }
 

@@ -15,6 +15,7 @@ RootWindow::~RootWindow()
 
 bool RootWindow::Create(const RootWindow *owner, const Rect &rect, const string &caption)
 {
+    rect_ = rect;
     return native_window_->Create(rect, caption.c_str());
 }
 

@@ -20,3 +20,4 @@ ShortNamespaceLines: 0
 SortIncludes: CaseInsensitive
 AlignArrayOfStructures: Left
 InsertBraces: True
+InsertNewlineAtEOF: true

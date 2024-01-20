@@ -42,8 +42,10 @@ class NativeWindowBase
     static LRESULT CALLBACK StartWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
     static LRESULT CALLBACK StaticWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-  private:
+  protected:
     HWND hwnd_;
+
+  private:
     WNDPROC original_proc_;
     Thunk<WNDPROC> thunk_;
 #ifdef _DEBUG

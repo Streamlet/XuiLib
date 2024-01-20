@@ -1,8 +1,10 @@
 #pragma once
 
+#include "../gragh/rect.h"
 #include "message.h"
 #include <functional>
 #include <map>
+#include <vector>
 
 namespace xui
 {
@@ -28,6 +30,8 @@ class Window
     std::multimap<WindowMessage, MsgHandler> msg_handlers_;
 
   protected:
+    Rect rect_;
+    uint8_t alpha_ = 255;
     std::vector<ChildWindow *> children_;
 };
 

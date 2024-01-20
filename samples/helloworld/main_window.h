@@ -10,4 +10,5 @@ class MainWindow : public xui::RootWindow
 
   private:
     void *OnDestroy(xui::WindowMessage msg, void *param, bool &handled);
+    void *OnPaint(xui::WindowMessage msg, void *param, bool &handled);
 };

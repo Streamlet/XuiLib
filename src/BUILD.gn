@@ -4,6 +4,12 @@ config("xuilib_public_config") {
 
 static_library("xuilib") {
   sources = [
+    "../include/xui/graph/color.h",
+    "../include/xui/graph/image.h",
+    "../include/xui/graph/point.h",
+    "../include/xui/graph/rect.h",
+    "../include/xui/graph/size.h",
+    "../include/xui/renderer/renderer.h",
     "../include/xui/utility/app_util.h",
     "../include/xui/utility/string.h",
     "../include/xui/window/child_window.h",
@@ -16,7 +22,11 @@ static_library("xuilib") {
 
   if (is_win) {
     sources += [
+      "renderer/gdi_renderer_win.cc",
+      "renderer/gdi_renderer_win.h",
       "utility/app_util_win.cc",
+      "utility/graph_util_win.cc",
+      "utility/graph_util_win.h",
       "window/native_window_base_win.cc",
       "window/native_window_base_win.h",
       "window/native_window_win.cc",
@@ -38,6 +48,11 @@ static_library("xuilib") {
       "window/root_window_mac.cc",
     ]
   }
+
+  libs = [
+    "msimg32.lib",
+    "gdiplus.lib",
+  ]
 
   public_configs = [ ":xuilib_public_config" ]
 }
