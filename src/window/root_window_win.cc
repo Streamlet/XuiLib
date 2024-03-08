@@ -15,12 +15,12 @@ RootWindow::~RootWindow()
 {
 }
 
-bool RootWindow::Create(const RootWindow *owner, const Rect &rect, const string &caption)
+bool RootWindow::Create(const RootWindow *owner, const Rect &rect)
 {
     rect_ = rect;
     return native_window_->Create(owner == nullptr ? nullptr : (HWND)*owner->native_window_, rect,
-                                  WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, ROOT_WINDOW_CLASS_NAME,
-                                  caption.c_str());
+                                  WS_OVERLAPPEDWINDOW | WS_VISIBLE, alpha_ == 255 ? 0 : WS_EX_LAYERED,
+                                  ROOT_WINDOW_CLASS_NAME, nullptr);
 }
 
 bool RootWindow::Destroy()

@@ -16,7 +16,7 @@ class RootWindow : public Window
     RootWindow();
     ~RootWindow();
 
-    bool Create(const RootWindow *owner, const Rect &rect, const string &caption);
+    bool Create(const RootWindow *owner, const Rect &rect);
     bool Destroy();
 
   private:

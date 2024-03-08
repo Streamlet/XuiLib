@@ -8,7 +8,7 @@ int WINAPI _tWinMain(__in HINSTANCE hInstance,
                      __in int nShowCmd)
 {
     MainWindow mainWindow;
-    mainWindow.Create(nullptr, xui::Rect(0, 0, 400, 300), _T("Hello, world!"));
+    mainWindow.Create(nullptr, xui::Rect(0, 0, 400, 300));
 
     MSG msg = {};
 

@@ -30,6 +30,8 @@ class Window
     std::multimap<WindowMessage, MsgHandler> msg_handlers_;
 
   protected:
+    friend class RootWindow;
+    friend class ChildWindow;
     Rect rect_;
     uint8_t alpha_ = 255;
     std::vector<ChildWindow *> children_;

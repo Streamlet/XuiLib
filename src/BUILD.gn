@@ -17,6 +17,7 @@ static_library("xuilib") {
     "../include/xui/window/root_window.h",
     "../include/xui/window/window.h",
     "../include/xui/xuilib.h",
+    "window/child_window.cc",
     "window/window.cc",
   ]
 

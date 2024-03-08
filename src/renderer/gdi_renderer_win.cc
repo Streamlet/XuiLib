@@ -91,4 +91,8 @@ void GdiRenderer::PrintImage(Image *image, Rect rect, Rect image_region, uint8_t
 {
 }
 
+void GdiRenderer::Dump()
+{
+}
+
 } // namespace xui

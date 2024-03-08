@@ -34,6 +34,8 @@ class GdiRenderer : public Renderer
                    bool underlined) override;
     void PrintImage(Image *image, Rect rect, Rect image_region, uint8_t alpha) override;
 
+    void Dump();
+
   private:
     HDC hdc_;
 };

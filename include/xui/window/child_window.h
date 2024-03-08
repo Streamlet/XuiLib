@@ -12,11 +12,11 @@ class ChildWindow : public Window
     ChildWindow();
     ~ChildWindow();
 
-    bool Create(const Window *parent, const Rect &rect, const string &caption);
-    bool Destroy();
+    bool Create(Window *parent, const Rect &rect);
+    void Destroy();
 
   private:
-    ChildWindow *parent_;
+    Window *parent_;
 };
 
 } // namespace xui

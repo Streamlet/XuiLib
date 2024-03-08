@@ -1,4 +1,6 @@
+#include <cassert>
 #include <xui/window/window.h>
+
 
 namespace xui
 {

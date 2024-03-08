@@ -22,6 +22,5 @@ void *MainWindow::OnDestroy(xui::WindowMessage msg, void *param, bool &handled)
 void *MainWindow::OnPaint(xui::WindowMessage msg, void *param, bool &handled)
 {
     xui::Renderer *renderer = (xui::Renderer *)param;
-    renderer->FillRect(xui::Rect(0, 0, 100, 100), xui::Color(255, 0, 0, 200));
     return nullptr;
 }

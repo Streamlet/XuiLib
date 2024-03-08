@@ -97,17 +97,36 @@ void NativeWindow::Redraw()
 {
     if ((GetWindowLong(hwnd_, GWL_EXSTYLE) & WS_EX_LAYERED) != 0)
     {
+        RECT rcWindow = {};
+        ::GetWindowRect(hwnd_, &rcWindow);
+
+        POINT ptClient = {0, 0};
+        ::ClientToScreen(hwnd_, &ptClient);
+
+        ptClient.x -= rcWindow.left;
+        ptClient.y -= rcWindow.top;
+        ::OffsetRect(&rcWindow, rcWindow.left, rcWindow.top);
+        SIZE szWindow = {rcWindow.right - rcWindow.left, rcWindow.bottom - rcWindow.top};
+
+        RECT rcClient = {};
+        ::GetClientRect(hwnd_, &rcClient);
+        ::OffsetRect(&rcClient, ptClient.x, ptClient.y);
+        SIZE szClient = {rcClient.right - rcClient.left, rcClient.bottom - rcClient.top};
+        LONG lBorderWidth = ptClient.x;
+        LONG lCaptionHeight = ptClient.y - ptClient.x;
+
         HDC hDC = GetDC(hwnd_);
         HDC hTargetDC = CreateCompatibleDC(hDC);
 
-        HBITMAP hBitmap = graph_util::CreateBitmap(window_->rect_.W(), window_->rect_.H(), nullptr);
+        HBITMAP hBitmap = graph_util::CreateBitmap(szWindow.cx, szWindow.cy, nullptr);
         ::SelectObject(hTargetDC, hBitmap);
-        RenderWindow(window_, hTargetDC, Rect(Point(0, 0), window_->rect_.Size()));
+
+        RenderWindow(window_, hTargetDC, Rect(rcClient.left, rcClient.top, rcClient.right, rcClient.bottom));
+
         BLENDFUNCTION bf = {AC_SRC_OVER, 0, 255, AC_SRC_ALPHA};
         POINT pt = POINT{0, 0};
-        SIZE sz{window_->rect_.W(), window_->rect_.H()};
         HDC hScreenDC = GetDC(NULL);
-        ::UpdateLayeredWindow(hwnd_, hScreenDC, &pt, &sz, hTargetDC, &pt, 0, &bf, ULW_ALPHA);
+        ::UpdateLayeredWindow(hwnd_, hScreenDC, &pt, &szWindow, hTargetDC, &pt, 0, &bf, ULW_ALPHA);
         ::ReleaseDC(nullptr, hScreenDC);
         ::DeleteObject(hBitmap);
         ::DeleteDC(hTargetDC);
@@ -130,8 +149,11 @@ void NativeWindow::RenderWindow(Window *window, HDC hDC, Rect rect)
         ::SelectObject(hTargetDC, hBitmap);
     }
     gdi_renderer_->AttachDC(hTargetDC);
-    ::SetViewportOrgEx(hTargetDC, rect.l, rect.t, nullptr);
-
+    if (hTargetDC == hDC)
+    {
+        ::SetViewportOrgEx(hTargetDC, rect.l, rect.t, nullptr);
+    }
+    
     bool bHandled = true;
     window_->ProcessMessage(XUI_WM_PAINT, (Renderer *)gdi_renderer_.get(), bHandled);
     for (const auto &child : window_->children_)
@@ -139,7 +161,10 @@ void NativeWindow::RenderWindow(Window *window, HDC hDC, Rect rect)
         RenderWindow(child, hTargetDC, child->rect_);
     }
 
-    ::SetViewportOrgEx(hTargetDC, 0, 0, nullptr);
+    if (hTargetDC == hDC)
+    {
+        ::SetViewportOrgEx(hTargetDC, 0, 0, nullptr);
+    }
     gdi_renderer_->DetachDC();
 
     if (hTargetDC != hDC)
