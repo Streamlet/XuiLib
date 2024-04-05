@@ -16,15 +16,20 @@ class Window
 {
   public:
     Window();
-    ~Window();
+    virtual ~Window();
 
   protected:
     typedef std::function<void *(WindowMessage msg, void *param, bool &handled)> MsgHandler;
     void RegisterMessaheHandler(WindowMessage msg, MsgHandler handler);
 
+    Rect ClientRect() const;
+
   private:
     friend class NativeWindow;
     void *ProcessMessage(WindowMessage msg, void *param, bool &handled);
+
+  protected:
+    void *ProcessChildMessage(WindowMessage msg, void *param, bool &handled);
 
   private:
     std::multimap<WindowMessage, MsgHandler> msg_handlers_;

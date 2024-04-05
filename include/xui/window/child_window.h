@@ -16,7 +16,7 @@ class ChildWindow : public Window
     void Destroy();
 
   private:
-    Window *parent_;
+    Window *parent_ = nullptr;
 };
 
 } // namespace xui

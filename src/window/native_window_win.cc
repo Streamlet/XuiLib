@@ -48,7 +48,7 @@ NativeWindow::~NativeWindow()
 
 LRESULT NativeWindow::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, bool &bHandled)
 {
-    bHandled = false;
+    window_->ProcessMessage(XUI_WM_CREATE, nullptr, bHandled);
     Redraw();
     return 0;
 }
@@ -142,34 +142,43 @@ void NativeWindow::RenderWindow(Window *window, HDC hDC, Rect rect)
 {
     HDC hTargetDC = hDC;
     HBITMAP hBitmap = nullptr;
-    if (window_->alpha_ != 255)
+    HRGN hRgn = nullptr;
+    Point offset(0, 0);
+    if (window->alpha_ != 255)
     {
         hTargetDC = ::CreateCompatibleDC(hDC);
         hBitmap = graph_util::CreateBitmap(rect.W(), rect.H(), nullptr);
         ::SelectObject(hTargetDC, hBitmap);
     }
-    gdi_renderer_->AttachDC(hTargetDC);
-    if (hTargetDC == hDC)
+    else
     {
+        offset = rect.TL();
+        HRGN hNewRgn = ::CreateRectRgn(rect.l, rect.t, rect.r, rect.b);
+        hRgn = ::CreateRectRgn(0, 0, 1, 1);
+        ::GetClipRgn(hTargetDC, hRgn);
+        ::SelectClipRgn(hTargetDC, hNewRgn);
         ::SetViewportOrgEx(hTargetDC, rect.l, rect.t, nullptr);
     }
+
     
     bool bHandled = true;
-    window_->ProcessMessage(XUI_WM_PAINT, (Renderer *)gdi_renderer_.get(), bHandled);
-    for (const auto &child : window_->children_)
+    gdi_renderer_->AttachDC(hTargetDC);
+    window->ProcessMessage(XUI_WM_PAINT, (Renderer *)gdi_renderer_.get(), bHandled);
+    gdi_renderer_->DetachDC();
+    for (const auto &child : window->children_)
     {
-        RenderWindow(child, hTargetDC, child->rect_);
+        Rect rc(Point(offset.x + child->rect_.l, offset.y + child->rect_.t), child->rect_.Size());
+        RenderWindow(child, hTargetDC, rc);
     }
 
     if (hTargetDC == hDC)
     {
         ::SetViewportOrgEx(hTargetDC, 0, 0, nullptr);
+        ::SelectClipRgn(hTargetDC, hRgn);
     }
-    gdi_renderer_->DetachDC();
-
-    if (hTargetDC != hDC)
+    else
     {
-        BLENDFUNCTION bf = {AC_SRC_OVER, 0, window_->alpha_, AC_SRC_ALPHA};
+        BLENDFUNCTION bf = {AC_SRC_OVER, 0, window->alpha_, AC_SRC_ALPHA};
         ::AlphaBlend(hDC, rect.l, rect.t, rect.W(), rect.H(), hTargetDC, 0, 0, rect.W(), rect.H(), bf);
         ::DeleteObject(hBitmap);
         ::DeleteDC(hTargetDC);

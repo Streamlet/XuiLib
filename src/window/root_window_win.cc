@@ -18,14 +18,20 @@ RootWindow::~RootWindow()
 bool RootWindow::Create(const RootWindow *owner, const Rect &rect)
 {
     rect_ = rect;
-    return native_window_->Create(owner == nullptr ? nullptr : (HWND)*owner->native_window_, rect,
-                                  WS_OVERLAPPEDWINDOW | WS_VISIBLE, alpha_ == 255 ? 0 : WS_EX_LAYERED,
-                                  ROOT_WINDOW_CLASS_NAME, nullptr);
+    bool result = native_window_->Create(owner == nullptr ? nullptr : (HWND)*owner->native_window_, rect,
+                                         WS_OVERLAPPEDWINDOW | WS_VISIBLE, alpha_ == 255 ? 0 : WS_EX_LAYERED,
+                                         ROOT_WINDOW_CLASS_NAME, nullptr);
+    bool bHandled = true;
+    ProcessChildMessage(XUI_WM_CREATE, nullptr, bHandled);
+    return result;
 }
 
 bool RootWindow::Destroy()
 {
-    return native_window_->Destroy();
+    bool result = native_window_->Destroy();
+    bool bHandled = true;
+    ProcessChildMessage(XUI_WM_DESTROY, nullptr, bHandled);
+    return result;
 }
 
 } // namespace xui

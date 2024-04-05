@@ -1,13 +1,13 @@
 #pragma once
 
-#include "child.h"
+#include "grandchild.h"
 #include <xui/xuilib.h>
 
-class MainWindow : public xui::RootWindow
+class Child : public xui::ChildWindow
 {
   public:
-    MainWindow();
-    ~MainWindow();
+    Child();
+    ~Child();
 
   private:
     void *OnCreate(xui::WindowMessage msg, void *param, bool &handled);
@@ -15,5 +15,5 @@ class MainWindow : public xui::RootWindow
     void *OnPaint(xui::WindowMessage msg, void *param, bool &handled);
 
   private:
-    Child child_;
+    Grandchild grandchild_;
 };

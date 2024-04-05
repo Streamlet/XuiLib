@@ -1,7 +1,6 @@
 #include <cassert>
 #include <xui/window/window.h>
 
-
 namespace xui
 {
 
@@ -34,6 +33,21 @@ void *Window::ProcessMessage(WindowMessage msg, void *param, bool &handled)
     }
     handled = false;
     return result;
+}
+
+void *Window::ProcessChildMessage(WindowMessage msg, void *param, bool &handled)
+{
+    for (ChildWindow *child : children_)
+    {
+        ((Window *)child)->ProcessMessage(msg, param, handled);
+        ((Window *)child)->ProcessChildMessage(msg, param, handled);
+    }
+    return nullptr;
+}
+
+Rect Window::ClientRect() const
+{
+    return Rect(0, 0, rect_.W(), rect_.H());
 }
 
 } // namespace xui

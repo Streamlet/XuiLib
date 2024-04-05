@@ -1,5 +1,9 @@
 source_set("helloworld_sources") {
   sources = [
+    "child.cc",
+    "child.h",
+    "grandchild.cc",
+    "grandchild.h",
     "main_window.cc",
     "main_window.h",
   ]
