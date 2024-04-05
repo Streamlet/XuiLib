@@ -19,19 +19,21 @@ bool ChildWindow::Create(Window *parent, const Rect &rect)
     parent_ = parent;
     rect_ = rect;
     parent_->children_.push_back(this);
+
     bool bHandled = true;
-    ProcessChildMessage(XUI_WM_CREATE, nullptr, bHandled);
+    ProcessMessage(XUI_WM_CREATE, nullptr, bHandled);
     return true;
 }
 
 void ChildWindow::Destroy()
 {
+    bool bHandled = true;
+    ProcessMessage(XUI_WM_DESTROY, nullptr, bHandled);
+
     assert(parent_ != nullptr);
     parent_->children_.erase(std::remove(parent_->children_.begin(), parent_->children_.end(), this),
                              parent_->children_.end());
     parent_ = nullptr;
-    bool bHandled = true;
-    ProcessChildMessage(XUI_WM_DESTROY, nullptr, bHandled);
 }
 
 } // namespace xui

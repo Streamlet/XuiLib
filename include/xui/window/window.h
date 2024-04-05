@@ -28,9 +28,6 @@ class Window
     friend class NativeWindow;
     void *ProcessMessage(WindowMessage msg, void *param, bool &handled);
 
-  protected:
-    void *ProcessChildMessage(WindowMessage msg, void *param, bool &handled);
-
   private:
     std::multimap<WindowMessage, MsgHandler> msg_handlers_;
 
